@@ -18,7 +18,6 @@ tfnet/yolo/*.parsed
 *.txt
 *.pb
 /profile
-/test.py
 *.weights
 *.mp4
 *.avi
