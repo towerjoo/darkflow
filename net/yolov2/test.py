@@ -23,7 +23,7 @@ def findboxes(self, net_out):
 	boxes=box_constructor(meta,net_out)
 	return boxes
 
-def postprocess(self, net_out, im, save = True):
+def postprocess(self, net_out, im, save = True, return_pred=True):
 	"""
 	Takes net output, draw net_out, save to disk
 	"""
@@ -40,12 +40,17 @@ def postprocess(self, net_out, im, save = True):
 	h, w, _ = imgcv.shape
 	
 	textBuff = "["
+    pred = []
 	for b in boxes:
 		boxResults = self.process_box(b, h, w, threshold)
 		if boxResults is None:
 			continue
 		left, right, top, bot, mess, max_indx, confidence = boxResults
 		thick = int((h + w) // 300)
+        pred.append({
+            "label": mess,
+            "confidence": confidence,
+        })
 		if self.FLAGS.json:
 			line = 	('{"label":"%s",'
 					'"confidence":%.2f,'
@@ -61,7 +66,7 @@ def postprocess(self, net_out, im, save = True):
 		cv2.putText(imgcv, mess, (left, top - 12),
 			0, 1e-3 * h, colors[max_indx],thick//3)
 
-	if not save: return imgcv
+	if not save: return imgcv, pred
 	# Removing trailing comma+newline adding json list terminator.
 	textBuff = textBuff[:-2] + "]"
 	outfolder = os.path.join(self.FLAGS.test, 'out')

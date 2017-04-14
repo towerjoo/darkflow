@@ -65,7 +65,8 @@ def _get_fps(self, frame):
     processed = self.framework.postprocess(net_out, frame, False)
     return timer() - start
 
-def camera(self, file, SaveVideo):
+# the original implementation
+def camera_orig(self, file, SaveVideo):
     if file == 'camera':
         file = 0
     else:
@@ -121,6 +122,52 @@ def camera(self, file, SaveVideo):
         videoWriter.release()
     camera.release()
     cv2.destroyAllWindows()
+
+# disable the not needed part
+def camera(self, file, out, SaveVideo):
+    assert os.path.isfile(file), \
+    'file {} does not exist'.format(file)
+        
+    camera = cv2.VideoCapture(file)
+    assert camera.isOpened(), \
+    'Cannot capture source'
+
+    elapsed = int()
+    start = timer()
+    
+    _, frame = camera.read()
+    height, width, _ = frame.shape
+    cv2.resizeWindow('', width, height)
+    
+    if SaveVideo:
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        fps = round(camera.get(cv2.CAP_PROP_FPS))
+        videoWriter = cv2.VideoWriter(out, fourcc, fps, (width, height))
+
+    preds = []
+    while camera.isOpened():
+        _, frame = camera.read()
+        if frame is None:
+            break
+        preprocessed = self.framework.preprocess(frame)
+        feed_dict = {self.inp: [preprocessed]}
+        net_out = self.sess.run(self.out,feed_dict)[0]
+        processed, pred = self.framework.postprocess(net_out, frame, False, True)
+        for p in pred:
+            preds.append({
+                "frame": frame,
+                "obj": p["label"],
+                "prob": p["confidence"],
+            })
+        if SaveVideo:
+            videoWriter.write(processed)
+        elapsed += 1
+
+    if SaveVideo:
+        videoWriter.release()
+    camera.release()
+    preds.sort(key=lambda x:x["prob"], reverse=True)
+    return preds
 
 def to_darknet(self):
     darknet_ckpt = self.darknet
