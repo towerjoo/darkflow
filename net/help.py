@@ -145,7 +145,9 @@ def camera(self, file, out, SaveVideo):
         videoWriter = cv2.VideoWriter(out, fourcc, fps, (width, height))
 
     preds = []
+    i = 0
     while camera.isOpened():
+        i += 1
         _, frame = camera.read()
         if frame is None:
             break
@@ -155,7 +157,7 @@ def camera(self, file, out, SaveVideo):
         processed, pred = self.framework.postprocess(net_out, frame, False, True)
         for p in pred:
             preds.append({
-                "frame": frame,
+                "frame": i,
                 "obj": p["label"],
                 "prob": p["confidence"],
             })

@@ -19,3 +19,10 @@ tfnet/yolo/*.parsed
 *.pb
 /profile
 /test.py
+*.weights
+*.mp4
+*.avi
+*.c
+*.so
+cython_utils/build/
+cython_utils/setup.py
