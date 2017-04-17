@@ -32,7 +32,7 @@ def process_box(self, b, h, w, threshold):
 		if right > w - 1: right = w - 1
 		if top   < 0    :   top = 0
 		if bot   > h - 1:   bot = h - 1
-		mess = '{}'.format(label)
+		mess = '{}:{:.2f}'.format(label, max_prob)
 		return (left, right, top, bot, mess, max_indx, max_prob)
 	return None
 

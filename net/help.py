@@ -137,7 +137,7 @@ def camera(self, file, out, SaveVideo):
     
     _, frame = camera.read()
     height, width, _ = frame.shape
-    cv2.resizeWindow('', width, height)
+    #cv2.resizeWindow('', width, height)
     
     if SaveVideo:
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -146,21 +146,27 @@ def camera(self, file, out, SaveVideo):
 
     preds = []
     i = 0
+    skip = self.FLAGS["skip"]
+    current_boxes = []
     while camera.isOpened():
         i += 1
         _, frame = camera.read()
         if frame is None:
             break
-        preprocessed = self.framework.preprocess(frame)
-        feed_dict = {self.inp: [preprocessed]}
-        net_out = self.sess.run(self.out,feed_dict)[0]
-        processed, pred = self.framework.postprocess(net_out, frame, False, True)
-        for p in pred:
-            preds.append({
-                "frame": i,
-                "obj": p["label"],
-                "prob": p["confidence"],
-            })
+        if (i-1) % skip == 0:
+            preprocessed = self.framework.preprocess(frame)
+            feed_dict = {self.inp: [preprocessed]}
+            net_out = self.sess.run(self.out,feed_dict)[0]
+            processed, pred, current_boxes = self.framework.postprocess(net_out, frame, False, True)
+            for p in pred:
+                preds.append({
+                    "frame": i,
+                    "obj": p["label"],
+                    "prob": p["confidence"],
+                })
+        else:
+            #frame = self.framework.preprocess(frame)
+            processed = self.framework.add_current_box(frame, current_boxes)
         if SaveVideo:
             videoWriter.write(processed)
         elapsed += 1

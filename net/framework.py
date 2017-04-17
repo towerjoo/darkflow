@@ -43,6 +43,7 @@ class YOLOv2(framework):
     resize_input = yolo.test.resize_input
     findboxes = yolov2.test.findboxes
     process_box = yolo.test.process_box
+    add_current_box = yolov2.test.add_current_box
 
 """
 framework factory
