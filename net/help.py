@@ -161,7 +161,7 @@ def camera(self, file, out, SaveVideo):
             for p in pred:
                 preds.append({
                     "frame": i,
-                    "obj": p["label"],
+                    "obj": p["label"].split(":")[0],
                     "prob": p["confidence"],
                 })
         else:
