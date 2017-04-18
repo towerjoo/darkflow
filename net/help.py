@@ -123,7 +123,7 @@ def camera_orig(self, file, SaveVideo):
     camera.release()
     cv2.destroyAllWindows()
 
-def analyze_video(self, file):
+def analyze_video(self, file, save=False):
     assert os.path.isfile(file), \
     'file {} does not exist'.format(file)
         
@@ -131,12 +131,19 @@ def analyze_video(self, file):
     assert camera.isOpened(), \
     'Cannot capture source'
 
+    root = file.split("/")[0] if "/" in file else ""
+    filename = file.split("/")[-1]
+    out = os.path.join(root, "{}_processed.{}".format(filename.split(".")[0], filename.split(".")[-1]))
+
     elapsed = int()
     start = timer()
     
     _, frame = camera.read()
     height, width, _ = frame.shape
-    #cv2.resizeWindow('', width, height)
+    if save:
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        fps = round(camera.get(cv2.CAP_PROP_FPS))
+        videoWriter = cv2.VideoWriter(out, fourcc, fps, (width, height))
     
 
     preds = []
@@ -152,10 +159,16 @@ def analyze_video(self, file):
             preprocessed = self.framework.preprocess(frame)
             feed_dict = {self.inp: [preprocessed]}
             net_out = self.sess.run(self.out,feed_dict)[0]
-            pred  = self.framework.postprocess_for_api(net_out, frame)
+            processed, pred, current_boxes  = self.framework.postprocess_for_api(net_out, frame, save)
             preds.append(pred)
         else:
             preds.append([])
+            processed = self.framework.add_current_box(frame, current_boxes)
+        if save:
+            videoWriter.write(processed)
+    if save:
+        videoWriter.release()
+    camera.release()
     return preds
 
 # disable the not needed part

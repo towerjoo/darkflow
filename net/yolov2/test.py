@@ -97,7 +97,7 @@ def postprocess(self, net_out, im, save = True, return_pred=True):
 
     if not save: return imgcv, pred, current_boxes
 
-def postprocess_for_api(self, net_out, im):
+def postprocess_for_api(self, net_out, im, save=False):
     boxes = self.findboxes(net_out)
 
     # meta
@@ -112,6 +112,7 @@ def postprocess_for_api(self, net_out, im):
     
     textBuff = "["
     pred = []
+    current_boxes = []
     for b in boxes:
         boxResults = self.process_box(b, h, w, threshold)
         if boxResults is None:
@@ -123,5 +124,18 @@ def postprocess_for_api(self, net_out, im):
             "confidence": float(confidence),
             "box": [left, right, top, bot],
         })
+        current_boxes.append({
+            "box": [left, top, right, bot],
+            "color": colors[max_indx],
+            "thick": thick,
+            "label": mess,
+        })
+        if save:
+            cv2.rectangle(imgcv,
+                (left, top), (right, bot),
+                colors[max_indx], thick)
+            mess = "{}:{:.2f}".format(mess, confidence)
+            cv2.putText(imgcv, mess, (left, top - 12),
+                0, 1e-3 * h, colors[max_indx],thick//3)
     pred.sort(key=lambda x:x["confidence"], reverse=True)
-    return pred
+    return imgcv, pred, current_boxes
