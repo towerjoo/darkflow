@@ -133,7 +133,7 @@ def analyze_video(self, file, save=False):
 
     root = file.split("/")[0] if "/" in file else ""
     filename = file.split("/")[-1]
-    out = os.path.join(root, "{}_processed.{}".format(filename.split(".")[0], filename.split(".")[-1]))
+    out = os.path.join(root, "{}_processed.avi".format(filename.split(".")[0]))
 
     elapsed = int()
     start = timer()
