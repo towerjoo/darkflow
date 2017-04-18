@@ -85,6 +85,7 @@ def postprocess(self, net_out, im, save = True, return_pred=True):
         cv2.rectangle(imgcv,
             (left, top), (right, bot),
             colors[max_indx], thick)
+        mess = "{}:{:.2f}".format(mess, confidence)
         cv2.putText(imgcv, mess, (left, top - 12),
             0, 1e-3 * h, colors[max_indx],thick//3)
         current_boxes.append({
@@ -119,7 +120,7 @@ def postprocess_for_api(self, net_out, im):
         thick = int((h + w) // 300)
         pred.append({
             "label": mess,
-            "confidence": confidence,
+            "confidence": float(confidence),
             "box": [left, right, top, bot],
         })
     pred.sort(key=lambda x:x["confidence"], reverse=True)
