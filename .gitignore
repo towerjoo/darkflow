@@ -25,3 +25,4 @@ tfnet/yolo/*.parsed
 *.so
 cython_utils/build/
 cython_utils/setup.py
+*.org

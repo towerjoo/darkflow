@@ -71,6 +71,7 @@ def postprocess(self, net_out, im, save = True, return_pred=True):
         pred.append({
             "label": mess,
             "confidence": confidence,
+            "box": [left, right, top, bot],
         })
         if self.FLAGS.json:
             line =     ('{"label":"%s",'
@@ -94,3 +95,32 @@ def postprocess(self, net_out, im, save = True, return_pred=True):
         })
 
     if not save: return imgcv, pred, current_boxes
+
+def postprocess_for_api(self, net_out, im):
+    boxes = self.findboxes(net_out)
+
+    # meta
+    meta = self.meta
+    threshold = meta['thresh']
+    colors = meta['colors']
+    labels = meta['labels']
+    if type(im) is not np.ndarray:
+        imgcv = cv2.imread(im)
+    else: imgcv = im
+    h, w, _ = imgcv.shape
+    
+    textBuff = "["
+    pred = []
+    for b in boxes:
+        boxResults = self.process_box(b, h, w, threshold)
+        if boxResults is None:
+            continue
+        left, right, top, bot, mess, max_indx, confidence = boxResults
+        thick = int((h + w) // 300)
+        pred.append({
+            "label": mess,
+            "confidence": confidence,
+            "box": [left, right, top, bot],
+        })
+    pred.sort(key=lambda x:x["confidence"], reverse=True)
+    return pred

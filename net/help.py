@@ -123,6 +123,41 @@ def camera_orig(self, file, SaveVideo):
     camera.release()
     cv2.destroyAllWindows()
 
+def analyze_video(self, file):
+    assert os.path.isfile(file), \
+    'file {} does not exist'.format(file)
+        
+    camera = cv2.VideoCapture(file)
+    assert camera.isOpened(), \
+    'Cannot capture source'
+
+    elapsed = int()
+    start = timer()
+    
+    _, frame = camera.read()
+    height, width, _ = frame.shape
+    #cv2.resizeWindow('', width, height)
+    
+
+    preds = []
+    i = 0
+    window = self.FLAGS["window"]
+    current_boxes = []
+    while camera.isOpened():
+        i += 1
+        _, frame = camera.read()
+        if frame is None:
+            break
+        if (i-1) % window == 0:
+            preprocessed = self.framework.preprocess(frame)
+            feed_dict = {self.inp: [preprocessed]}
+            net_out = self.sess.run(self.out,feed_dict)[0]
+            pred  = self.framework.postprocess_for_api(net_out, frame)
+            preds.append(pred)
+        else:
+            preds.append([])
+    return preds
+
 # disable the not needed part
 def camera(self, file, out, SaveVideo):
     assert os.path.isfile(file), \
@@ -146,14 +181,14 @@ def camera(self, file, out, SaveVideo):
 
     preds = []
     i = 0
-    skip = self.FLAGS["skip"]
+    window = self.FLAGS["window"]
     current_boxes = []
     while camera.isOpened():
         i += 1
         _, frame = camera.read()
         if frame is None:
             break
-        if (i-1) % skip == 0:
+        if (i-1) % window == 0:
             preprocessed = self.framework.preprocess(frame)
             feed_dict = {self.inp: [preprocessed]}
             net_out = self.sess.run(self.out,feed_dict)[0]
